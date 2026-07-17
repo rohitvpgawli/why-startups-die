@@ -1,8 +1,8 @@
 #!/bin/zsh
-# Weekly refresh: pull the latest YC directory (statuses change weekly —
-# that's how new deaths arrive), re-sweep evidence for inactive companies,
-# and rebuild the dashboard. Safe to re-run: every ingester is idempotent
-# and the notice miner only visits unchecked companies.
+# Manual full-pipeline re-run: pull the latest YC directory (statuses flip
+# over time — that's how new deaths arrive), re-sweep evidence for inactive
+# companies, and rebuild the dashboard. Safe to re-run: every ingester is
+# idempotent and the notice miner only visits unchecked companies.
 set -e
 cd "$(dirname "$0")/.."
 export PYTHONPATH=src
