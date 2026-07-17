@@ -336,22 +336,10 @@ const sv = (t, a) => { const e = document.createElementNS(SVGNS, t); for (const 
 /* ── industry mortality (2021–23 cohorts) ── */
 (function () {
   const svg = document.getElementById("c-ind");
-  const W = 490, m = { l: 150, r: 64, t: 8 };
-  const rows = DATA.by_industry
-    .map(d => {
-      const olds = DATA.inactive.filter(c => c.industry === d.industry && c.year <= 2023).length;
-      return { ...d, oldInactive: olds };
-    })
-    .filter(d => d.total >= 80 && d.industry !== "Unknown")
-    .map(d => {
-      const oldTotal = d.total_old || null;
-      return d;
-    });
-  // rate over 2021-23 cohort computed from full data below
-  const oldTotals = {};
-  for (const c of DATA.by_year_industry || []) oldTotals[c.industry] = c.total;
-  const top = rows
-    .map(d => ({ ...d, rate: d.inactive / d.total }))
+  const W = 490, m = { l: 150, r: 118, t: 8 };
+  const top = DATA.by_industry
+    .filter(d => d.total_old >= 60 && d.industry !== "Unknown")
+    .map(d => ({ ...d, rate: d.inactive_old / d.total_old }))
     .sort((a, b) => b.rate - a.rate)
     .slice(0, 9);
   const bh = 22, gap = 12;
@@ -364,10 +352,10 @@ const sv = (t, a) => { const e = document.createElementNS(SVGNS, t); for (const 
     lab.textContent = d.industry.length > 20 ? d.industry.slice(0, 19) + "…" : d.industry;
     svg.append(lab);
     const r = sv("rect", { x: m.l, y: yy, width: w, height: bh, fill: css("--inactive"), rx: 3 });
-    bindTip(r, `${d.industry}: ${d.inactive} of ${d.total} shut down (${(d.rate * 100).toFixed(1)}%)`);
+    bindTip(r, `${d.industry}: ${d.inactive_old} of ${d.total_old} (2021–23 cohorts) shut down (${(d.rate * 100).toFixed(1)}%)`);
     svg.append(r);
     const v = sv("text", { x: m.l + w + 6, y: yy + bh / 2 + 4, class: "dlab" });
-    v.textContent = `${(d.rate * 100).toFixed(1)}%  n=${d.total}`;
+    v.textContent = `${(d.rate * 100).toFixed(1)}%  n=${d.total_old}`;
     svg.append(v);
   });
 })();
@@ -409,7 +397,7 @@ const sv = (t, a) => { const e = document.createElementNS(SVGNS, t); for (const 
 /* ── shutdown categories ── */
 (function () {
   const svg = document.getElementById("c-why");
-  const W = 1000, m = { l: 250, r: 90, t: 8 };
+  const W = 1000, m = { l: 250, r: 140, t: 8 };
   const cats = (DATA.shutdown_categories || []).filter(c => c.category);
   if (!cats.length) {
     const t = sv("text", { x: 20, y: 40 });

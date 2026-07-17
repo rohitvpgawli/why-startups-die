@@ -34,12 +34,28 @@ def search_form_d(name: str) -> list:
     return [h for h in hits if (h.get("_source", {}).get("file_date") or "") >= "2020-01-01"]
 
 
+CORP_SUFFIX_TOKENS = {
+    "inc", "incorporated", "llc", "corp", "corporation", "co", "company",
+    "ltd", "limited", "pbc", "holdings", "labs", "technologies", "inc",
+}
+
+
 def name_matches(company_name: str, filer_name: str) -> bool:
-    """Filer display names look like 'Acme, Inc.' — require the company name
-    to be the leading token sequence of the filer name."""
+    """Exact-name matching: the filer must be the company name alone or the
+    name followed only by corporate-suffix tokens. 'AIRBYTE, INC.' matches
+    'Airbyte'; 'Galaxy Digital LP' must NOT match 'Galaxy' — leading-prefix
+    matching floods common-word names with unrelated funds."""
     canon = re.sub(r"[^a-z0-9 ]", "", company_name.lower()).strip()
-    filer = re.sub(r"[^a-z0-9 ]", "", (filer_name or "").lower()).strip()
-    return bool(canon) and (filer == canon or filer.startswith(canon + " "))
+    filer = re.sub(r"\(cik[^)]*\)", "", (filer_name or "").lower())
+    filer = re.sub(r"[^a-z0-9 ]", "", filer).strip()
+    if not canon:
+        return False
+    if filer == canon:
+        return True
+    if filer.startswith(canon + " "):
+        rest = filer[len(canon) + 1:].split()
+        return all(t in CORP_SUFFIX_TOKENS for t in rest)
+    return False
 
 
 def offering_amount(adsh: str, cik: str) -> Optional[int]:
@@ -82,6 +98,7 @@ def ingest(status_filter: str = None, limit: int = None) -> None:
                 print(f"  [{i}/{len(targets)}] {company_id}: search FAILED {e}")
                 time.sleep(REQUEST_DELAY_S)
                 continue
+            matched = []
             for h in hits:
                 src = h.get("_source", {})
                 filer_names = src.get("display_names") or []
@@ -90,8 +107,15 @@ def ingest(status_filter: str = None, limit: int = None) -> None:
                 adsh = src.get("adsh")
                 ciks = src.get("ciks") or []
                 filed = src.get("file_date")
-                if not (adsh and ciks and filed):
-                    continue
+                if adsh and ciks and filed:
+                    matched.append((adsh, ciks, filed))
+            # A real startup is one legal entity (occasionally two). Several
+            # distinct CIKs matching the same name means the name is ambiguous
+            # — drop the company rather than store someone else's filings.
+            if len({c[1][0] for c in matched}) > 2:
+                time.sleep(REQUEST_DELAY_S)
+                continue
+            for adsh, ciks, filed in matched:
                 amount = offering_amount(adsh, ciks[0])
                 filing_url = (
                     f"https://www.sec.gov/Archives/edgar/data/{int(ciks[0])}/"

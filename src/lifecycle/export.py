@@ -42,12 +42,15 @@ def run() -> None:
             ).fetchall()
         ]
         by_industry = [
-            {"industry": r[0], "total": r[1], "inactive": r[2], "acquired": r[3]}
+            {"industry": r[0], "total": r[1], "inactive": r[2], "acquired": r[3],
+             "total_old": r[4], "inactive_old": r[5]}
             for r in con.execute(
                 """
                 SELECT coalesce(industry, 'Unknown'), count(*),
                        count(*) FILTER (status = 'Inactive'),
-                       count(*) FILTER (status = 'Acquired')
+                       count(*) FILTER (status = 'Acquired'),
+                       count(*) FILTER (cohort_year <= 2023),
+                       count(*) FILTER (cohort_year <= 2023 AND status = 'Inactive')
                 FROM companies GROUP BY 1 ORDER BY 2 DESC
                 """
             ).fetchall()
