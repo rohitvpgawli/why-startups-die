@@ -121,6 +121,73 @@ def run() -> None:
                 "hn": hn, "funding": funding, "enrichment": enrichment,
             })
 
+        # ── Kaplan-Meier survival by cohort year ──────────────────────────
+        # Event = website death (last live Wayback snapshot) for Inactive
+        # companies; everything else is right-censored at the export date.
+        # Acquisitions are censored, not events: acquired ≠ dead, and we lack
+        # acquisition dates. Inactive companies with no Wayback trace are
+        # excluded (death time unknown).
+        NOW_Y, NOW_M = date.today().year, date.today().month
+        survival_curves = []
+        for cohort_year in (2021, 2022, 2023):
+            obs = []  # (months, event)
+            for cid, batch, status in con.execute(
+                "SELECT company_id, batch, status FROM companies WHERE cohort_year = ?",
+                [cohort_year],
+            ).fetchall():
+                start = batch_start(batch or "", cohort_year)
+                sy, sm = int(start[:4]), int(start[5:7])
+                if status == "Inactive":
+                    la = con.execute(
+                        "SELECT max(snapshot_month) FROM wayback_snapshots WHERE company_id = ? AND status_code = '200'",
+                        [cid],
+                    ).fetchone()[0]
+                    if la is None:
+                        continue
+                    t = max((la.year - sy) * 12 + (la.month - sm), 0)
+                    obs.append((t, 1))
+                else:
+                    obs.append(((NOW_Y - sy) * 12 + (NOW_M - sm), 0))
+            obs.sort()
+            n_at_risk = len(obs)
+            s = 1.0
+            points = [{"t": 0, "s": 1.0}]
+            i = 0
+            while i < len(obs):
+                t = obs[i][0]
+                deaths = at_this_t = 0
+                while i < len(obs) and obs[i][0] == t:
+                    deaths += obs[i][1]
+                    at_this_t += 1
+                    i += 1
+                if deaths and n_at_risk:
+                    s *= 1 - deaths / n_at_risk
+                    points.append({"t": t, "s": round(s, 4)})
+                n_at_risk -= at_this_t
+            survival_curves.append({"year": cohort_year, "n": len(obs), "points": points})
+
+        # ── Funding (Form D) vs shutdown, 2021–23 cohorts ─────────────────
+        # Coverage caveat: Form D only captures US exempt offerings actually
+        # filed; "no filing found" is NOT "raised nothing".
+        funding_survival = []
+        for label, cond in [
+            ("No Form D found", "f.company_id IS NULL"),
+            ("Filed, under $5M", "f.total IS NOT NULL AND coalesce(f.total_amt, 0) < 5000000"),
+            ("Filed, $5M or more", "f.total IS NOT NULL AND coalesce(f.total_amt, 0) >= 5000000"),
+        ]:
+            row = con.execute(
+                f"""
+                WITH fr AS (
+                    SELECT company_id, count(*) AS total, sum(amount_usd) AS total_amt
+                    FROM funding_rounds GROUP BY 1
+                )
+                SELECT count(*), count(*) FILTER (c.status = 'Inactive')
+                FROM companies c LEFT JOIN fr f ON f.company_id = c.company_id
+                WHERE c.cohort_year <= 2023 AND ({cond})
+                """
+            ).fetchone()
+            funding_survival.append({"bucket": label, "total": row[0], "inactive": row[1]})
+
         categories = [
             {"category": r[0], "count": r[1], "avg_confidence": round(r[2], 2)}
             for r in con.execute(
@@ -139,6 +206,8 @@ def run() -> None:
             "by_industry": by_industry,
             "inactive": inactive,
             "shutdown_categories": categories,
+            "survival_curves": survival_curves,
+            "funding_survival": funding_survival,
         }
 
     EXPORT_PATH.write_text(json.dumps(payload, default=str))

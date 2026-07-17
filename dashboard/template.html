@@ -222,6 +222,23 @@ footer { margin-top: 60px; font-size: 12px; color: var(--muted); }
 </section>
 
 <section>
+  <h2>Survival curves</h2>
+  <p class="sub">Kaplan-Meier estimate per cohort: probability a company's website is still alive after n months.
+  Deaths are last-live Wayback snapshots; acquired and operating companies are censored, not counted as deaths.
+  Hover for exact values.</p>
+  <div class="legend" id="lg-surv"></div>
+  <div class="card"><svg id="c-surv" width="1000" height="300"></svg></div>
+</section>
+
+<section>
+  <h2>Does money delay death?</h2>
+  <p class="sub">Shutdown rate by SEC Form D filing status, 2021–2023 cohorts. Caveat: Form D only captures
+  US exempt offerings actually filed — "no filing found" does not mean "raised nothing" (non-US companies
+  and other exemptions are invisible here).</p>
+  <div class="card"><svg id="c-fund" width="1000" height="170"></svg></div>
+</section>
+
+<section>
   <h2>Why they shut down</h2>
   <p class="sub">LLM-extracted from shutdown letters, HN threads, and news — every extraction carries a verbatim
   quote and source URL. Confidence is capped by source quality: founder letters ≤ 0.9, community testimony ≤ 0.7,
@@ -392,6 +409,99 @@ const sv = (t, a) => { const e = document.createElementNS(SVGNS, t); for (const 
   const xt = sv("text", { x: (W + m.l) / 2, y: H - 6, "text-anchor": "middle" });
   xt.textContent = "months from batch start to last live snapshot";
   svg.append(xt);
+})();
+
+/* ── Kaplan-Meier survival curves ── */
+(function () {
+  const svg = document.getElementById("c-surv");
+  const curves = DATA.survival_curves || [];
+  if (!curves.length) return;
+  const W = 1000, H = 300, m = { l: 56, r: 74, t: 14, b: 34 };
+  const colors = [css("--acquired"), css("--active"), "#eda100"];
+  const darkColors = [css("--acquired"), css("--active"), "#c98500"];
+  const isDark = matchMedia("(prefers-color-scheme: dark)").matches ||
+    document.documentElement.dataset.theme === "dark";
+  const cs = (document.documentElement.dataset.theme === "light") ? colors : (isDark ? darkColors : colors);
+  const maxT = Math.max(...curves.map(c => c.points[c.points.length - 1].t));
+  const yMin = 0.75;
+  const x = t => m.l + t / maxT * (W - m.l - m.r);
+  const y = s => m.t + (1 - (s - yMin) / (1 - yMin)) * (H - m.t - m.b);
+  for (let g = 1.0; g >= yMin - 1e-9; g -= 0.05) {
+    svg.append(sv("line", { x1: m.l, x2: W - m.r, y1: y(g), y2: y(g), stroke: css("--grid") }));
+    const lab = sv("text", { x: m.l - 8, y: y(g) + 4, "text-anchor": "end" });
+    lab.textContent = Math.round(g * 100) + "%";
+    svg.append(lab);
+  }
+  for (let t = 0; t <= maxT; t += 12) {
+    const lab = sv("text", { x: x(t), y: H - m.b + 18, "text-anchor": "middle" });
+    lab.textContent = t;
+    svg.append(lab);
+  }
+  const xt = sv("text", { x: (m.l + W - m.r) / 2, y: H - 2, "text-anchor": "middle" });
+  xt.textContent = "months since batch start";
+  svg.append(xt);
+  document.getElementById("lg-surv").innerHTML = curves.map((c, i) =>
+    `<span><i class="sw" style="background:${cs[i]}"></i>${c.year} cohort (n=${c.n})</span>`).join("");
+  const stepFn = [];
+  curves.forEach((c, i) => {
+    let d = `M ${x(0)} ${y(1)}`;
+    let prevS = 1;
+    for (const p of c.points.slice(1)) {
+      d += ` H ${x(p.t)} V ${y(p.s)}`;
+      prevS = p.s;
+    }
+    d += ` H ${x(c.points[c.points.length - 1].t)}`;
+    svg.append(sv("path", { d, fill: "none", stroke: cs[i], "stroke-width": 2,
+      "stroke-linejoin": "round" }));
+    const endP = c.points[c.points.length - 1];
+    const el2 = sv("text", { x: x(endP.t) + 6, y: y(endP.s) + 4, class: "dlab", fill: cs[i] });
+    el2.textContent = `${c.year} · ${(endP.s * 100).toFixed(1)}%`;
+    svg.append(el2);
+    stepFn.push(t => {
+      let s = 1;
+      for (const p of c.points) { if (p.t <= t) s = p.s; else break; }
+      return s;
+    });
+  });
+  const hover = sv("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b,
+    fill: "transparent" });
+  hover.addEventListener("mousemove", e => {
+    const r = svg.getBoundingClientRect();
+    const t = Math.round((e.clientX - r.left - m.l) / (W - m.l - m.r) * maxT);
+    if (t < 0 || t > maxT) return;
+    tip.style.display = "block";
+    tip.textContent = `${t} mo — ` + curves.map((c, i) =>
+      `${c.year}: ${(stepFn[i](t) * 100).toFixed(1)}%`).join("  ·  ");
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - 270) + "px";
+    tip.style.top = (e.clientY + 14) + "px";
+  });
+  hover.addEventListener("mouseleave", () => tip.style.display = "none");
+  svg.append(hover);
+})();
+
+/* ── funding vs shutdown ── */
+(function () {
+  const svg = document.getElementById("c-fund");
+  const rows = DATA.funding_survival || [];
+  if (!rows.length) return;
+  const W = 1000, m = { l: 210, r: 130, t: 8 };
+  const bh = 22, gap = 18;
+  svg.setAttribute("height", rows.length * (bh + gap) + 16);
+  const maxR = Math.max(...rows.map(d => d.inactive / d.total)) * 1.15;
+  rows.forEach((d, i) => {
+    const rate = d.inactive / d.total;
+    const yy = m.t + i * (bh + gap);
+    const w = rate / maxR * (W - m.l - m.r);
+    const lab = sv("text", { x: m.l - 10, y: yy + bh / 2 + 4, "text-anchor": "end", class: "val" });
+    lab.textContent = d.bucket;
+    svg.append(lab);
+    const r = sv("rect", { x: m.l, y: yy, width: w, height: bh, fill: css("--inactive"), rx: 3 });
+    bindTip(r, `${d.bucket}: ${d.inactive} of ${d.total} shut down (${(rate * 100).toFixed(1)}%)`);
+    svg.append(r);
+    const v = sv("text", { x: m.l + w + 8, y: yy + bh / 2 + 4, class: "dlab" });
+    v.textContent = `${(rate * 100).toFixed(1)}%  n=${d.total}`;
+    svg.append(v);
+  });
 })();
 
 /* ── shutdown categories ── */
