@@ -1,0 +1,55 @@
+{
+ "n": 4,
+ "median_delta_months": 3.0,
+ "median_abs_error_months": 3.0,
+ "range": [
+  0,
+  20
+ ],
+ "note": "delta = proxy (last live Wayback snapshot) minus announced shutdown month; positive = site outlived announcement",
+ "sample": [
+  {
+   "company": "phind",
+   "announced": "2026-01",
+   "proxy": "2026-01",
+   "delta_months": 0,
+   "source": "HN: 'Phind.com Is Shutting Down' (2026-01-12)"
+  },
+  {
+   "company": "neptyne",
+   "announced": "2024-11",
+   "proxy": "2025-01",
+   "delta_months": 2,
+   "source": "Founder blog: 'Neptyne Is Shutting Down' (2024-11-13)"
+  },
+  {
+   "company": "hera",
+   "announced": "2022-09",
+   "proxy": null,
+   "delta_months": null,
+   "source": "Own site: 'Hera is shutting down on September first' (2022-08)"
+  },
+  {
+   "company": "thorntale",
+   "announced": "2025-12",
+   "proxy": "2026-04",
+   "delta_months": 4,
+   "source": "Homepage: 'shutting down in December 2025'"
+  },
+  {
+   "company": "moxion-power-co",
+   "announced": "2024-07",
+   "proxy": "2026-03",
+   "delta_months": 20,
+   "source": "News: furloughs staff, shutdown likely (2024-07)"
+  },
+  {
+   "company": "quest",
+   "announced": "2022-03",
+   "proxy": null,
+   "delta_months": null,
+   "source": "Founder tweet via HN: 'Quest (YC S21) shuts down' (2022-03-22)"
+  }
+ ],
+ "conclusion": "Proxy is biased LATE: websites outlive shutdown announcements (median +3 months in this n=4 sample, one +20-month zombie site). KM lifespans should be read as upper bounds. 2 of 6 documented deaths had no usable Wayback trace (excluded from KM, consistent with the 17/300 exclusion rate)."
+}

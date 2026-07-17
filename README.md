@@ -18,7 +18,7 @@ denominators that framing provides are what make the analysis valid.
 | Acquired | 197 · IPOs: **0** |
 | Consumer shutdown rate (2021–23 cohorts) | **26.6%** — vs Healthcare 7.5% |
 | Kaplan-Meier survival, 2021 cohort at 66 months | 81.2% |
-| Shutdown rate: no Form D found / <$5M filed / ≥$5M filed | 14.2% / 13.3% / **11.1%** — funding barely delays death |
+| Shutdown rate: no Form D found / <$5M filed / ≥$5M filed | 14.2% [12.6–16.0] / 13.3% [7.4–22.8] / 11.1% [6.3–18.8] — **overlapping CIs: no detectable difference** |
 | Shutdowns that left *any* public post-mortem trail | ~6 of 300 — **most startups die silently** |
 | "Inactive" companies that were actually quiet acquisitions | 3 found via homepage-notice mining (Fabius, Flike, Launcher Labs) |
 
@@ -155,7 +155,15 @@ comments against official statements; and absence of evidence is recorded as
   death month; Active/Acquired/Public are right-censored at the export date
   (acquired ≠ dead, and acquisition dates aren't available). Inactive
   companies with no Wayback trace (17 of 300) are excluded, not imputed.
-- **Rate comparisons** (industry, funding) use 2021–23 cohorts only.
+- **Rate comparisons** (industry, funding) use 2021–23 cohorts only, and
+  every published rate carries a **Wilson 95% CI** (whiskers on the
+  dashboard); KM curves carry **Greenwood 95% bands**.
+- **Proxy validation** (`data/proxy_validation.json`): against 6 shutdowns
+  with independently documented announcement dates, the proxy ran **late** —
+  deltas of 0, +2, +4, and +20 months (median +3), with 2 of 6 leaving no
+  usable Wayback trace at all. Read KM lifespans as *upper bounds*: websites
+  outlive companies, occasionally by years (Moxion Power's site zombied for
+  20 months after the shutdown news).
 
 ## Known limitations — disclose these when citing
 
@@ -172,6 +180,24 @@ comments against official statements; and absence of evidence is recorded as
    recall sacrificed for precision.
 6. archive.org throttles sustained crawls; the notice miner records every
    check so re-runs only visit unchecked companies.
+
+## Tests
+
+`PYTHONPATH=src python -m unittest discover tests` — regression tests pin
+every entity-resolution rule to the concrete failure that motivated it
+(Galaxy-fund pollution, Abel/June homonyms, month-name subjects). Writing
+them caught and fixed two further live filter leaks.
+
+## Data releases & citation
+
+`scripts/make_release.py vX.Y.Z` cuts a versioned, committable release into
+`releases/`: one CSV per table, the analysis JSON (all CIs included), the
+proxy-validation sample, and SHA-256 checksums. **`releases/v1.0.0/` is the
+citable artifact** — the DuckDB working file stays local. Compilation
+licensed CC BY 4.0:
+
+> Gawli, R. (2026). The Startup Lifecycle Project: outcomes of Y Combinator
+> startups, 2021–2026 batches. Data release v1.0.0.
 
 ## Repository layout
 
@@ -190,6 +216,9 @@ src/lifecycle/
 dashboard/template.html        # self-contained dashboard (charts + registry)
 dashboard/build.py             # injects export.json -> data/dashboard.html
 scripts/refresh.sh             # manual full-pipeline re-run
+scripts/make_release.py        # cut a versioned CSV release + checksums
+tests/test_matchers.py         # regression tests for entity-resolution rules
+releases/v1.0.0/               # committed, citable data release
 data/                          # gitignored: DuckDB file, export, dashboard
 ```
 

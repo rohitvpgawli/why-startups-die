@@ -21,24 +21,31 @@ MIN_POINTS = 5  # drop zero-traction noise
 # Startup-context tokens: a short/common company name in a title only counts
 # when the title also reads like startup news.
 CONTEXT_TOKENS = (
+    # NB: no bare "dead"/"closed" — they match obituaries and person-name
+    # homonyms ("Abel Wang Is Dead"); "shut"/"acquire" cover real shutdowns.
     "yc", "y combinator", "show hn", "launch", "shut", "shutdown", "shutting",
-    "closes", "closing", "closed", "acquire", "acquired", "acquisition",
-    "post-mortem", "postmortem", "winding down", "wind down", "dead", "startup",
+    "closes", "closing", "acquire", "acquired", "acquisition",
+    "post-mortem", "postmortem", "winding down", "wind down", "startup",
     "raises", "funding", "seed", "series a",
 )
 
 
 def is_relevant(name: str, domain: str, title: str, url: str) -> bool:
-    """Cut homonym noise: domain match is decisive; a name match in the
-    title needs either a distinctive name or startup context around it."""
+    """Cut homonym noise: domain match is decisive; a distinctive name in the
+    title is enough; a short/common name must be the grammatical SUBJECT
+    (title starts with it, or 'Name (' as in 'Quest (YC S21)') AND carry
+    startup context — otherwise month names ('shutting down June 26') and
+    person names ('Abel Wang') flood the mentions."""
     if domain and domain in (url or ""):
         return True
     title_lower = (title or "").lower()
-    if not re.search(r"\b" + re.escape(name.lower()) + r"\b", title_lower):
+    name_lower = name.lower()
+    if not re.search(r"\b" + re.escape(name_lower) + r"\b", title_lower):
         return False
     if len(name) >= 8:
         return True
-    return any(tok in title_lower for tok in CONTEXT_TOKENS)
+    is_subject = title_lower.startswith(name_lower) or (name_lower + " (") in title_lower
+    return is_subject and any(tok in title_lower for tok in CONTEXT_TOKENS)
 
 
 def search_stories(query: str) -> list:

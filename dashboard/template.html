@@ -224,17 +224,19 @@ footer { margin-top: 60px; font-size: 12px; color: var(--muted); }
 <section>
   <h2>Survival curves</h2>
   <p class="sub">Kaplan-Meier estimate per cohort: probability a company's website is still alive after n months.
-  Deaths are last-live Wayback snapshots; acquired and operating companies are censored, not counted as deaths.
-  Hover for exact values.</p>
+  Shaded bands are 95% confidence intervals (Greenwood). Deaths are last-live Wayback snapshots; acquired and
+  operating companies are censored, not counted as deaths. Hover for exact values.</p>
   <div class="legend" id="lg-surv"></div>
   <div class="card"><svg id="c-surv" width="1000" height="300"></svg></div>
 </section>
 
 <section>
-  <h2>Does money delay death?</h2>
-  <p class="sub">Shutdown rate by SEC Form D filing status, 2021–2023 cohorts. Caveat: Form D only captures
-  US exempt offerings actually filed — "no filing found" does not mean "raised nothing" (non-US companies
-  and other exemptions are invisible here).</p>
+  <h2>Does money delay death? Not detectably.</h2>
+  <p class="sub">Shutdown rate by SEC Form D filing status, 2021–2023 cohorts, with 95% confidence
+  intervals (whiskers). The intervals overlap: at this sample size there is <strong>no statistically
+  detectable difference</strong> between funded and unfunded companies' death rates. Caveats: Form D only
+  captures US exempt offerings actually filed ("no filing found" ≠ "raised nothing"), and any true effect
+  is confounded by selection — stronger companies both raise more and survive more.</p>
   <div class="card"><svg id="c-fund" width="1000" height="170"></svg></div>
 </section>
 
@@ -274,6 +276,21 @@ const el = (t, a = {}, html = "") => {
 };
 const esc = s => (s || "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+/* Wilson score interval — every rate on this page ships with its 95% CI */
+function wilson(k, n, z = 1.96) {
+  if (!n) return [0, 0];
+  const p = k / n, d = 1 + z * z / n;
+  const c = (p + z * z / (2 * n)) / d;
+  const h = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d;
+  return [Math.max(0, c - h), Math.min(1, c + h)];
+}
+/* horizontal CI whisker at bar mid-height */
+function whisker(svg, x0, x1, yMid, ink) {
+  for (const [a, b, c, d] of [[x0, x1, yMid, yMid], [x0, x0, yMid - 4, yMid + 4], [x1, x1, yMid - 4, yMid + 4]]) {
+    svg.append(sv("line", { x1: a, x2: b, y1: c, y2: d, stroke: ink, "stroke-width": 1.5, opacity: 0.85 }));
+  }
+}
 
 /* tooltip */
 const tip = document.getElementById("tip");
@@ -334,9 +351,11 @@ const sv = (t, a) => { const e = document.createElementNS(SVGNS, t); for (const 
       const v = d[s.key] / d.total;
       const bx = x(i) + 13 + j * (bw + 2);
       const r = sv("rect", { x: bx, y: y(v), width: bw, height: H - m.b - y(v), fill: s.color, rx: 3 });
-      bindTip(r, `${d.year}: ${d[s.key]} of ${d.total} ${s.label} (${(v * 100).toFixed(1)}%)`);
+      const [lo, hi] = wilson(d[s.key], d.total);
+      bindTip(r, `${d.year}: ${d[s.key]} of ${d.total} ${s.label} — ${(v * 100).toFixed(1)}% [95% CI ${(lo * 100).toFixed(1)}–${(hi * 100).toFixed(1)}]`);
       svg.append(r);
-      const t = sv("text", { x: bx + bw / 2, y: y(v) - 5, "text-anchor": "middle", class: "dlab" });
+      svg.append(sv("line", { x1: bx + bw / 2, x2: bx + bw / 2, y1: y(hi), y2: y(lo), stroke: css("--ink"), "stroke-width": 1.5, opacity: 0.7 }));
+      const t = sv("text", { x: bx + bw / 2, y: y(hi) - 5, "text-anchor": "middle", class: "dlab" });
       t.textContent = (v * 100).toFixed(1).replace(/\.0$/, "") + "%";
       svg.append(t);
     });
@@ -369,9 +388,11 @@ const sv = (t, a) => { const e = document.createElementNS(SVGNS, t); for (const 
     lab.textContent = d.industry.length > 20 ? d.industry.slice(0, 19) + "…" : d.industry;
     svg.append(lab);
     const r = sv("rect", { x: m.l, y: yy, width: w, height: bh, fill: css("--inactive"), rx: 3 });
-    bindTip(r, `${d.industry}: ${d.inactive_old} of ${d.total_old} (2021–23 cohorts) shut down (${(d.rate * 100).toFixed(1)}%)`);
+    const [lo, hi] = wilson(d.inactive_old, d.total_old);
+    bindTip(r, `${d.industry}: ${d.inactive_old} of ${d.total_old} (2021–23 cohorts) shut down — ${(d.rate * 100).toFixed(1)}% [95% CI ${(lo * 100).toFixed(1)}–${(hi * 100).toFixed(1)}]`);
     svg.append(r);
-    const v = sv("text", { x: m.l + w + 6, y: yy + bh / 2 + 4, class: "dlab" });
+    whisker(svg, m.l + lo / maxR * (W - m.l - m.r), m.l + Math.min(hi / maxR, 1) * (W - m.l - m.r), yy + bh / 2, css("--ink"));
+    const v = sv("text", { x: m.l + Math.min(hi / maxR, 1) * (W - m.l - m.r) + 6, y: yy + bh / 2 + 4, class: "dlab" });
     v.textContent = `${(d.rate * 100).toFixed(1)}%  n=${d.total_old}`;
     svg.append(v);
   });
@@ -443,12 +464,23 @@ const sv = (t, a) => { const e = document.createElementNS(SVGNS, t); for (const 
   document.getElementById("lg-surv").innerHTML = curves.map((c, i) =>
     `<span><i class="sw" style="background:${cs[i]}"></i>${c.year} cohort (n=${c.n})</span>`).join("");
   const stepFn = [];
+  const clampY = s => y(Math.max(s, yMin));
   curves.forEach((c, i) => {
+    // Greenwood 95% band: step path along hi, then back along lo
+    if (c.points[0].lo !== undefined) {
+      let band = `M ${x(0)} ${clampY(1)}`;
+      for (const p of c.points.slice(1)) band += ` H ${x(p.t)} V ${clampY(p.hi)}`;
+      const endT = c.points[c.points.length - 1].t;
+      band += ` H ${x(endT)} V ${clampY(c.points[c.points.length - 1].lo)}`;
+      for (let j = c.points.length - 1; j >= 1; j--) {
+        band += ` H ${x(c.points[j].t)} V ${clampY(j > 1 ? c.points[j - 1].lo : 1)}`;
+      }
+      band += ` H ${x(0)} Z`;
+      svg.append(sv("path", { d: band, fill: cs[i], opacity: 0.10, stroke: "none" }));
+    }
     let d = `M ${x(0)} ${y(1)}`;
-    let prevS = 1;
     for (const p of c.points.slice(1)) {
       d += ` H ${x(p.t)} V ${y(p.s)}`;
-      prevS = p.s;
     }
     d += ` H ${x(c.points[c.points.length - 1].t)}`;
     svg.append(sv("path", { d, fill: "none", stroke: cs[i], "stroke-width": 2,
@@ -470,8 +502,12 @@ const sv = (t, a) => { const e = document.createElementNS(SVGNS, t); for (const 
     const t = Math.round((e.clientX - r.left - m.l) / (W - m.l - m.r) * maxT);
     if (t < 0 || t > maxT) return;
     tip.style.display = "block";
-    tip.textContent = `${t} mo — ` + curves.map((c, i) =>
-      `${c.year}: ${(stepFn[i](t) * 100).toFixed(1)}%`).join("  ·  ");
+    tip.textContent = `${t} mo — ` + curves.map((c, i) => {
+      let last = c.points[0];
+      for (const p of c.points) { if (p.t <= t) last = p; else break; }
+      const ci = last.lo !== undefined ? ` [${(last.lo * 100).toFixed(1)}–${(last.hi * 100).toFixed(1)}]` : "";
+      return `${c.year}: ${(stepFn[i](t) * 100).toFixed(1)}%${ci}`;
+    }).join("  ·  ");
     tip.style.left = Math.min(e.clientX + 14, innerWidth - 270) + "px";
     tip.style.top = (e.clientY + 14) + "px";
   });
@@ -495,11 +531,13 @@ const sv = (t, a) => { const e = document.createElementNS(SVGNS, t); for (const 
     const lab = sv("text", { x: m.l - 10, y: yy + bh / 2 + 4, "text-anchor": "end", class: "val" });
     lab.textContent = d.bucket;
     svg.append(lab);
+    const [lo, hi] = wilson(d.inactive, d.total);
     const r = sv("rect", { x: m.l, y: yy, width: w, height: bh, fill: css("--inactive"), rx: 3 });
-    bindTip(r, `${d.bucket}: ${d.inactive} of ${d.total} shut down (${(rate * 100).toFixed(1)}%)`);
+    bindTip(r, `${d.bucket}: ${d.inactive} of ${d.total} shut down — ${(rate * 100).toFixed(1)}% [95% CI ${(lo * 100).toFixed(1)}–${(hi * 100).toFixed(1)}]`);
     svg.append(r);
-    const v = sv("text", { x: m.l + w + 8, y: yy + bh / 2 + 4, class: "dlab" });
-    v.textContent = `${(rate * 100).toFixed(1)}%  n=${d.total}`;
+    whisker(svg, m.l + lo / maxR * (W - m.l - m.r), m.l + Math.min(hi / maxR, 1) * (W - m.l - m.r), yy + bh / 2, css("--ink"));
+    const v = sv("text", { x: m.l + Math.min(hi / maxR, 1) * (W - m.l - m.r) + 8, y: yy + bh / 2 + 4, class: "dlab" });
+    v.textContent = `${(rate * 100).toFixed(1)}% [${(lo * 100).toFixed(1)}–${(hi * 100).toFixed(1)}]  n=${d.total}`;
     svg.append(v);
   });
 })();

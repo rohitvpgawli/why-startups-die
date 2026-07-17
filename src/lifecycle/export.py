@@ -13,6 +13,17 @@ from lifecycle.db import PROJECT_ROOT, connect
 
 EXPORT_PATH = PROJECT_ROOT / "data" / "export.json"
 
+
+def wilson_ci(k: int, n: int, z: float = 1.96):
+    """Wilson score interval for a proportion — behaves sanely at small n."""
+    if n == 0:
+        return None, None
+    p = k / n
+    denom = 1 + z * z / n
+    center = (p + z * z / (2 * n)) / denom
+    half = z * ((p * (1 - p) / n + z * z / (4 * n * n)) ** 0.5) / denom
+    return round(max(0.0, center - half), 4), round(min(1.0, center + half), 4)
+
 # Approximate batch start months for lifespan math.
 SEASON_MONTH = {"Winter": 1, "Spring": 4, "Summer": 6, "Fall": 9}
 
@@ -43,7 +54,8 @@ def run() -> None:
         ]
         by_industry = [
             {"industry": r[0], "total": r[1], "inactive": r[2], "acquired": r[3],
-             "total_old": r[4], "inactive_old": r[5]}
+             "total_old": r[4], "inactive_old": r[5],
+             "ci": wilson_ci(r[5], r[4])}
             for r in con.execute(
                 """
                 SELECT coalesce(industry, 'Unknown'), count(*),
@@ -151,7 +163,8 @@ def run() -> None:
             obs.sort()
             n_at_risk = len(obs)
             s = 1.0
-            points = [{"t": 0, "s": 1.0}]
+            greenwood = 0.0  # running sum for Greenwood variance
+            points = [{"t": 0, "s": 1.0, "lo": 1.0, "hi": 1.0}]
             i = 0
             while i < len(obs):
                 t = obs[i][0]
@@ -162,7 +175,14 @@ def run() -> None:
                     i += 1
                 if deaths and n_at_risk:
                     s *= 1 - deaths / n_at_risk
-                    points.append({"t": t, "s": round(s, 4)})
+                    if n_at_risk > deaths:
+                        greenwood += deaths / (n_at_risk * (n_at_risk - deaths))
+                    se = s * (greenwood ** 0.5)
+                    points.append({
+                        "t": t, "s": round(s, 4),
+                        "lo": round(max(0.0, s - 1.96 * se), 4),
+                        "hi": round(min(1.0, s + 1.96 * se), 4),
+                    })
                 n_at_risk -= at_this_t
             survival_curves.append({"year": cohort_year, "n": len(obs), "points": points})
 
@@ -186,7 +206,8 @@ def run() -> None:
                 WHERE c.cohort_year <= 2023 AND ({cond})
                 """
             ).fetchone()
-            funding_survival.append({"bucket": label, "total": row[0], "inactive": row[1]})
+            funding_survival.append({"bucket": label, "total": row[0], "inactive": row[1],
+                                     "ci": wilson_ci(row[1], row[0])})
 
         categories = [
             {"category": r[0], "count": r[1], "avg_confidence": round(r[2], 2)}
