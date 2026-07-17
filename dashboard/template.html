@@ -1,0 +1,520 @@
+<title>The Startup Lifecycle Project — YC 2021+ cohort</title>
+<style>
+/* ── tokens ─────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+  --page:        #f7f6f2;
+  --surface:     #fcfcfb;
+  --ink:         #14130f;
+  --ink-2:       #52514e;
+  --muted:       #898781;
+  --grid:        #e1e0d9;
+  --baseline:    #c3c2b7;
+  --ring:        rgba(11,11,11,0.10);
+  --acquired:    #2a78d6;
+  --active:      #1baf7a;
+  --inactive:    #e34948;
+  --public:      #4a3aa7;
+  --seq-3:       #6da7ec;
+  --seq-5:       #2a78d6;
+  --accent-wash: rgba(227,73,72,0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page:      #0d0d0d;
+    --surface:   #1a1a19;
+    --ink:       #f4f3ee;
+    --ink-2:     #c3c2b7;
+    --muted:     #898781;
+    --grid:      #2c2c2a;
+    --baseline:  #383835;
+    --ring:      rgba(255,255,255,0.10);
+    --acquired:  #3987e5;
+    --active:    #199e70;
+    --inactive:  #e66767;
+    --public:    #9085e9;
+    --seq-3:     #5598e7;
+    --seq-5:     #3987e5;
+    --accent-wash: rgba(230,103,103,0.10);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page:      #0d0d0d;
+  --surface:   #1a1a19;
+  --ink:       #f4f3ee;
+  --ink-2:     #c3c2b7;
+  --muted:     #898781;
+  --grid:      #2c2c2a;
+  --baseline:  #383835;
+  --ring:      rgba(255,255,255,0.10);
+  --acquired:  #3987e5;
+  --active:    #199e70;
+  --inactive:  #e66767;
+  --public:    #9085e9;
+  --seq-3:     #5598e7;
+  --seq-5:     #3987e5;
+  --accent-wash: rgba(230,103,103,0.10);
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --page:      #f7f6f2;
+  --surface:   #fcfcfb;
+  --ink:       #14130f;
+  --ink-2:     #52514e;
+  --muted:     #898781;
+  --grid:      #e1e0d9;
+  --baseline:  #c3c2b7;
+  --ring:      rgba(11,11,11,0.10);
+  --acquired:  #2a78d6;
+  --active:    #1baf7a;
+  --inactive:  #e34948;
+  --public:    #4a3aa7;
+  --seq-3:     #6da7ec;
+  --seq-5:     #2a78d6;
+  --accent-wash: rgba(227,73,72,0.08);
+}
+
+/* ── base ───────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+body {
+  background: var(--page);
+  color: var(--ink);
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 0 20px 80px;
+}
+.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+.wrap { max-width: 1060px; margin: 0 auto; }
+a { color: inherit; }
+
+/* ── header ─────────────────────────────────────────────────────────── */
+header { padding: 52px 0 12px; }
+.eyebrow {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted);
+}
+h1 {
+  font-size: clamp(30px, 5vw, 46px); line-height: 1.05;
+  letter-spacing: -0.02em; margin: 10px 0 8px; text-wrap: balance;
+  font-weight: 750;
+}
+.lede { color: var(--ink-2); max-width: 62ch; margin: 0; }
+.hero-row { display: flex; flex-wrap: wrap; gap: 14px; margin: 30px 0 8px; }
+.tile {
+  background: var(--surface); border: 1px solid var(--ring);
+  border-radius: 10px; padding: 16px 20px 14px; min-width: 150px; flex: 1;
+}
+.tile .k { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.tile .l { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.tile.dead .k { color: var(--inactive); }
+.tile.acq  .k { color: var(--acquired); }
+.tile.pub  .k { color: var(--public); }
+
+.note {
+  background: var(--accent-wash); border: 1px solid var(--ring);
+  border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--ink-2);
+  margin: 18px 0 0; max-width: 74ch;
+}
+
+/* ── sections & charts ──────────────────────────────────────────────── */
+section { margin-top: 44px; }
+h2 { font-size: 19px; letter-spacing: -0.01em; margin: 0 0 2px; }
+.sub { font-size: 13px; color: var(--muted); margin: 0 0 14px; max-width: 80ch; }
+.card {
+  background: var(--surface); border: 1px solid var(--ring);
+  border-radius: 12px; padding: 18px 18px 12px; overflow-x: auto;
+}
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+svg text {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px; fill: var(--muted);
+}
+svg .val { fill: var(--ink-2); }
+svg .dlab { fill: var(--ink-2); font-size: 11px; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); margin: 2px 0 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+/* tooltip */
+#tip {
+  position: fixed; pointer-events: none; z-index: 50; display: none;
+  background: var(--ink); color: var(--page); font-size: 12px;
+  padding: 6px 10px; border-radius: 6px; max-width: 260px;
+}
+
+/* ── registry ───────────────────────────────────────────────────────── */
+.controls { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 14px; }
+.controls input, .controls select {
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--ring); border-radius: 8px;
+  padding: 8px 12px; font: 13px ui-monospace, Menlo, monospace;
+}
+.controls input { flex: 1; min-width: 200px; }
+.controls input:focus, .controls select:focus { outline: 2px solid var(--acquired); outline-offset: 1px; }
+.count-line { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.reg { display: flex; flex-direction: column; gap: 10px; }
+.company {
+  background: var(--surface); border: 1px solid var(--ring);
+  border-radius: 10px; overflow: hidden;
+}
+.company > button {
+  all: unset; display: flex; width: 100%; cursor: pointer;
+  padding: 12px 16px; gap: 14px; align-items: baseline; box-sizing: border-box;
+}
+.company > button:focus-visible { outline: 2px solid var(--acquired); outline-offset: -2px; }
+.company .nm { font-weight: 650; white-space: nowrap; }
+.company .ol { color: var(--ink-2); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.company .bt { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--muted); white-space: nowrap; }
+.company .life { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--inactive); white-space: nowrap; }
+.detail { border-top: 1px solid var(--grid); padding: 14px 16px 16px; display: none; }
+.company.open .detail { display: block; }
+.detail .row { display: flex; gap: 10px; font-size: 13px; margin: 4px 0; }
+.detail .tag { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--muted); min-width: 90px; text-transform: uppercase; letter-spacing: 0.08em; padding-top: 2px; }
+.detail ul { margin: 0; padding-left: 18px; }
+.detail li { margin: 2px 0; font-size: 13px; }
+.quote {
+  border-left: 3px solid var(--inactive); margin: 8px 0 4px; padding: 6px 12px;
+  color: var(--ink-2); font-size: 13px; font-style: italic;
+}
+.conf { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--muted); }
+footer { margin-top: 60px; font-size: 12px; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) {
+  .company > button { transition: background 0.15s; }
+  .company > button:hover { background: var(--accent-wash); }
+}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">The Startup Lifecycle Project · YC batches 2021 →</div>
+  <h1>Every YC startup since 2021, and what became of it.</h1>
+  <p class="lede">A living dataset built from the YC directory, the Wayback Machine,
+  Hacker News, and SEC Form D filings — with LLM-extracted, evidence-linked shutdown
+  reasons. Outcomes, not obituaries: the cohort includes everything from IPO to wind-down.</p>
+  <div class="hero-row" id="tiles"></div>
+  <p class="note"><strong>Read the rates carefully.</strong> Recent cohorts are
+  right-censored — a 2025 company hasn't had time to reach an outcome. Low
+  shutdown rates in young batches are unfinished observations, not survival.</p>
+</header>
+
+<section>
+  <h2>Outcomes by batch year</h2>
+  <p class="sub">Share of each cohort no longer independent. The downward slope is cohort age, not improving odds.</p>
+  <div class="legend" id="lg-year"></div>
+  <div class="card"><svg id="c-year" width="1000" height="260"></svg></div>
+</section>
+
+<section class="grid2">
+  <div>
+    <h2>Where startups die</h2>
+    <p class="sub">Shutdown rate by industry, 2021–2023 cohorts only (old enough to judge). n on each bar.</p>
+    <div class="card"><svg id="c-ind" width="490" height="330"></svg></div>
+  </div>
+  <div>
+    <h2>How long they last</h2>
+    <p class="sub">Months from batch start to last live website snapshot (Wayback Machine), inactive companies.</p>
+    <div class="card"><svg id="c-life" width="490" height="330"></svg></div>
+  </div>
+</section>
+
+<section>
+  <h2>Why they shut down</h2>
+  <p class="sub">LLM-extracted from shutdown letters, HN threads, and news — every extraction carries a verbatim
+  quote and source URL. Confidence is capped by source quality: founder letters ≤ 0.9, community testimony ≤ 0.7,
+  inference from a dead site alone ≤ 0.4.</p>
+  <div class="card"><svg id="c-why" width="1000" height="300"></svg></div>
+</section>
+
+<section>
+  <h2>The registry</h2>
+  <p class="sub">Every inactive company in the cohort. Click one for its timeline and evidence.</p>
+  <div class="controls">
+    <input id="q" type="search" placeholder="search name, description, industry…" aria-label="Search companies">
+    <select id="f-year" aria-label="Filter by batch year"><option value="">all years</option></select>
+    <select id="f-ind" aria-label="Filter by industry"><option value="">all industries</option></select>
+  </div>
+  <div class="count-line" id="count"></div>
+  <div class="reg" id="reg"></div>
+</section>
+
+<footer id="foot"></footer>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+const fmt = n => n.toLocaleString("en-US");
+const el = (t, a = {}, html = "") => {
+  const e = document.createElement(t);
+  for (const [k, v] of Object.entries(a)) e.setAttribute(k, v);
+  if (html) e.innerHTML = html;
+  return e;
+};
+const esc = s => (s || "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+/* tooltip */
+const tip = document.getElementById("tip");
+function bindTip(node, text) {
+  node.addEventListener("mousemove", e => {
+    tip.style.display = "block";
+    tip.textContent = text;
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - 270) + "px";
+    tip.style.top = (e.clientY + 14) + "px";
+  });
+  node.addEventListener("mouseleave", () => tip.style.display = "none");
+}
+
+/* ── hero tiles ── */
+const st = DATA.by_status;
+const total = Object.values(st).reduce((a, b) => a + b, 0);
+const tiles = [
+  ["", fmt(total), "companies tracked"],
+  ["dead", fmt(st.Inactive || 0), "shut down"],
+  ["acq", fmt(st.Acquired || 0), "acquired"],
+  ["pub", fmt(st.Public || 0), "went public"],
+  ["", fmt(st.Active || 0), "still operating"],
+];
+for (const [cls, k, l] of tiles) {
+  document.getElementById("tiles").append(
+    el("div", { class: "tile " + cls }, `<div class="k">${k}</div><div class="l">${l}</div>`)
+  );
+}
+
+/* ── chart helpers ── */
+const SVGNS = "http://www.w3.org/2000/svg";
+const sv = (t, a) => { const e = document.createElementNS(SVGNS, t); for (const [k, v] of Object.entries(a)) e.setAttribute(k, v); return e; };
+
+/* ── outcomes by year: grouped thin bars, inactive vs acquired rate ── */
+(function () {
+  const svg = document.getElementById("c-year");
+  const W = 1000, H = 260, m = { l: 46, r: 10, t: 14, b: 30 };
+  const years = DATA.by_year.filter(d => d.year >= 2021);
+  const series = [
+    { key: "inactive", label: "shut down", color: css("--inactive") },
+    { key: "acquired", label: "acquired", color: css("--acquired") },
+  ];
+  document.getElementById("lg-year").innerHTML = series
+    .map(s => `<span><i class="sw" style="background:${s.color}"></i>${s.label} % of cohort</span>`).join("");
+  const maxRate = Math.max(...years.flatMap(d => series.map(s => d[s.key] / d.total))) * 1.15;
+  const x = i => m.l + i * ((W - m.l - m.r) / years.length);
+  const bw = ((W - m.l - m.r) / years.length - 26) / 2;
+  const y = v => H - m.b - v / maxRate * (H - m.t - m.b);
+  for (const gv of [0, 0.05, 0.1, 0.15, 0.2]) {
+    if (gv > maxRate) break;
+    svg.append(sv("line", { x1: m.l, x2: W - m.r, y1: y(gv), y2: y(gv), stroke: css("--grid"), "stroke-width": 1 }));
+    const lab = sv("text", { x: m.l - 8, y: y(gv) + 4, "text-anchor": "end" });
+    lab.textContent = Math.round(gv * 100) + "%";
+    svg.append(lab);
+  }
+  years.forEach((d, i) => {
+    series.forEach((s, j) => {
+      const v = d[s.key] / d.total;
+      const bx = x(i) + 13 + j * (bw + 2);
+      const r = sv("rect", { x: bx, y: y(v), width: bw, height: H - m.b - y(v), fill: s.color, rx: 3 });
+      bindTip(r, `${d.year}: ${d[s.key]} of ${d.total} ${s.label} (${(v * 100).toFixed(1)}%)`);
+      svg.append(r);
+      const t = sv("text", { x: bx + bw / 2, y: y(v) - 5, "text-anchor": "middle", class: "dlab" });
+      t.textContent = (v * 100).toFixed(1).replace(/\.0$/, "") + "%";
+      svg.append(t);
+    });
+    const xl = sv("text", { x: x(i) + 13 + bw + 1, y: H - m.b + 18, "text-anchor": "middle" });
+    xl.textContent = d.year + (d.year >= 2024 ? "*" : "");
+    svg.append(xl);
+  });
+  svg.append(sv("line", { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, stroke: css("--baseline"), "stroke-width": 1 }));
+  const cens = sv("text", { x: W - m.r, y: H - 4, "text-anchor": "end" });
+  cens.textContent = "* right-censored: too young to judge";
+  svg.append(cens);
+})();
+
+/* ── industry mortality (2021–23 cohorts) ── */
+(function () {
+  const svg = document.getElementById("c-ind");
+  const W = 490, m = { l: 150, r: 64, t: 8 };
+  const rows = DATA.by_industry
+    .map(d => {
+      const olds = DATA.inactive.filter(c => c.industry === d.industry && c.year <= 2023).length;
+      return { ...d, oldInactive: olds };
+    })
+    .filter(d => d.total >= 80 && d.industry !== "Unknown")
+    .map(d => {
+      const oldTotal = d.total_old || null;
+      return d;
+    });
+  // rate over 2021-23 cohort computed from full data below
+  const oldTotals = {};
+  for (const c of DATA.by_year_industry || []) oldTotals[c.industry] = c.total;
+  const top = rows
+    .map(d => ({ ...d, rate: d.inactive / d.total }))
+    .sort((a, b) => b.rate - a.rate)
+    .slice(0, 9);
+  const bh = 22, gap = 12;
+  svg.setAttribute("height", top.length * (bh + gap) + 20);
+  const maxR = Math.max(...top.map(d => d.rate)) * 1.1;
+  top.forEach((d, i) => {
+    const yy = m.t + i * (bh + gap);
+    const w = d.rate / maxR * (W - m.l - m.r);
+    const lab = sv("text", { x: m.l - 8, y: yy + bh / 2 + 4, "text-anchor": "end", class: "val" });
+    lab.textContent = d.industry.length > 20 ? d.industry.slice(0, 19) + "…" : d.industry;
+    svg.append(lab);
+    const r = sv("rect", { x: m.l, y: yy, width: w, height: bh, fill: css("--inactive"), rx: 3 });
+    bindTip(r, `${d.industry}: ${d.inactive} of ${d.total} shut down (${(d.rate * 100).toFixed(1)}%)`);
+    svg.append(r);
+    const v = sv("text", { x: m.l + w + 6, y: yy + bh / 2 + 4, class: "dlab" });
+    v.textContent = `${(d.rate * 100).toFixed(1)}%  n=${d.total}`;
+    svg.append(v);
+  });
+})();
+
+/* ── lifespan histogram ── */
+(function () {
+  const svg = document.getElementById("c-life");
+  const W = 490, H = 330, m = { l: 36, r: 8, t: 14, b: 34 };
+  const vals = DATA.inactive.map(d => d.lifespan_months).filter(v => v != null && v >= 0 && v <= 60);
+  const binW = 6, bins = [];
+  for (let b = 0; b < 60; b += binW) bins.push({ lo: b, hi: b + binW, n: 0 });
+  for (const v of vals) { const b = bins[Math.min(Math.floor(v / binW), bins.length - 1)]; b.n++; }
+  const maxN = Math.max(...bins.map(b => b.n)) * 1.15;
+  const x = i => m.l + i * ((W - m.l - m.r) / bins.length);
+  const bw = (W - m.l - m.r) / bins.length - 2;
+  const y = v => H - m.b - v / maxN * (H - m.t - m.b);
+  bins.forEach((b, i) => {
+    const r = sv("rect", { x: x(i) + 1, y: y(b.n), width: bw, height: H - m.b - y(b.n), fill: css("--seq-5"), rx: 3 });
+    bindTip(r, `${b.lo}–${b.hi} months: ${b.n} companies`);
+    svg.append(r);
+    if (i % 2 === 0) {
+      const t = sv("text", { x: x(i), y: H - m.b + 16 });
+      t.textContent = b.lo;
+      svg.append(t);
+    }
+  });
+  svg.append(sv("line", { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, stroke: css("--baseline") }));
+  const med = vals.sort((a, b) => a - b)[Math.floor(vals.length / 2)];
+  const medX = m.l + (med / 60) * (W - m.l - m.r);
+  svg.append(sv("line", { x1: medX, x2: medX, y1: m.t, y2: H - m.b, stroke: css("--ink"), "stroke-width": 1, "stroke-dasharray": "3 3" }));
+  const mt = sv("text", { x: medX + 5, y: m.t + 10, class: "val" });
+  mt.textContent = `median ${med} mo (n=${vals.length})`;
+  svg.append(mt);
+  const xt = sv("text", { x: (W + m.l) / 2, y: H - 6, "text-anchor": "middle" });
+  xt.textContent = "months from batch start to last live snapshot";
+  svg.append(xt);
+})();
+
+/* ── shutdown categories ── */
+(function () {
+  const svg = document.getElementById("c-why");
+  const W = 1000, m = { l: 250, r: 90, t: 8 };
+  const cats = (DATA.shutdown_categories || []).filter(c => c.category);
+  if (!cats.length) {
+    const t = sv("text", { x: 20, y: 40 });
+    t.textContent = "enrichment pending — run `python -m lifecycle enrich`";
+    svg.append(t);
+    return;
+  }
+  const LABELS = {
+    no_product_market_fit: "No product-market fit",
+    ran_out_of_funding: "Ran out of funding",
+    founder_issues: "Founder issues",
+    competition: "Competition",
+    market_timing: "Market timing",
+    failed_pivot: "Failed pivot",
+    acquihire_wind_down: "Acquihire / wind-down",
+    regulatory: "Regulatory",
+    technical_or_product: "Technical / product",
+    pivoted_new_entity: "Pivoted to new entity",
+    unknown: "Unknown / no public evidence",
+  };
+  const bh = 22, gap = 12;
+  svg.setAttribute("height", cats.length * (bh + gap) + 16);
+  const maxN = Math.max(...cats.map(c => c.count)) * 1.08;
+  cats.forEach((c, i) => {
+    const yy = m.t + i * (bh + gap);
+    const w = c.count / maxN * (W - m.l - m.r);
+    const lab = sv("text", { x: m.l - 10, y: yy + bh / 2 + 4, "text-anchor": "end", class: "val" });
+    lab.textContent = LABELS[c.category] || c.category;
+    svg.append(lab);
+    const fill = c.category === "unknown" ? css("--muted") : css("--inactive");
+    const r = sv("rect", { x: m.l, y: yy, width: Math.max(w, 2), height: bh, fill, rx: 3 });
+    bindTip(r, `${LABELS[c.category] || c.category}: ${c.count} companies, avg confidence ${(c.avg_confidence * 100).toFixed(0)}%`);
+    svg.append(r);
+    const v = sv("text", { x: m.l + Math.max(w, 2) + 8, y: yy + bh / 2 + 4, class: "dlab" });
+    v.textContent = `${c.count} · conf ${(c.avg_confidence * 100).toFixed(0)}%`;
+    svg.append(v);
+  });
+})();
+
+/* ── registry ── */
+(function () {
+  const reg = document.getElementById("reg");
+  const q = document.getElementById("q");
+  const fy = document.getElementById("f-year");
+  const fi = document.getElementById("f-ind");
+  const count = document.getElementById("count");
+  const rows = DATA.inactive;
+
+  [...new Set(rows.map(r => r.year))].sort().forEach(y =>
+    fy.append(el("option", { value: y }, String(y))));
+  [...new Set(rows.map(r => r.industry).filter(Boolean))].sort().forEach(ind =>
+    fi.append(el("option", { value: ind }, esc(ind))));
+
+  function card(r) {
+    const c = el("div", { class: "company" });
+    const life = r.lifespan_months != null ? `${r.lifespan_months} mo` : "—";
+    const btn = el("button", { "aria-expanded": "false" },
+      `<span class="nm">${esc(r.name)}</span>
+       <span class="ol">${esc(r.one_liner || "")}</span>
+       <span class="bt">${esc(r.batch || "")}</span>
+       <span class="life">† ${life}</span>`);
+    btn.addEventListener("click", () => {
+      c.classList.toggle("open");
+      btn.setAttribute("aria-expanded", c.classList.contains("open"));
+    });
+    const d = el("div", { class: "detail" });
+    const rowsHtml = [];
+    rowsHtml.push(`<div class="row"><span class="tag">profile</span><span>${esc(r.industry || "—")} · ${esc(r.region || "—")} · team ${r.team_size ?? "?"} · <a href="https://www.ycombinator.com/companies/${esc(r.id)}" target="_blank" rel="noopener">YC page</a></span></div>`);
+    rowsHtml.push(`<div class="row"><span class="tag">timeline</span><span>batch ${esc(r.batch_start)} → last live ${esc(r.last_alive || "unknown")}${r.domain ? ` · <span class="mono">${esc(r.domain)}</span>` : ""}</span></div>`);
+    if (r.funding.length) {
+      rowsHtml.push(`<div class="row"><span class="tag">form d</span><span>${r.funding.map(f =>
+        `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.date)}${f.amount ? " · $" + fmt(f.amount) : ""}</a>`).join(" · ")}</span></div>`);
+    }
+    if (r.hn.length) {
+      rowsHtml.push(`<div class="row"><span class="tag">hacker news</span><ul>${r.hn.map(h =>
+        `<li><a href="${esc(h.hn_url)}" target="_blank" rel="noopener">${esc(h.title)}</a> <span class="conf">${h.points}pts · ${esc(h.date)}</span></li>`).join("")}</ul></div>`);
+    }
+    if (r.enrichment) {
+      const e = r.enrichment;
+      rowsHtml.push(`<div class="row"><span class="tag">why</span><span><strong>${esc(e.primary_reason)}</strong>${e.secondary_reason ? " · " + esc(e.secondary_reason) : ""} <span class="conf">(${(e.confidence * 100).toFixed(0)}% · ${esc(e.source_quality)})</span></span></div>`);
+      rowsHtml.push(`<div class="quote">“${esc(e.quote)}” — <a href="${esc(e.source_url)}" target="_blank" rel="noopener">source</a></div>`);
+    }
+    d.innerHTML = rowsHtml.join("");
+    c.append(btn, d);
+    return c;
+  }
+
+  function render() {
+    const term = q.value.trim().toLowerCase();
+    const yv = fy.value, iv = fi.value;
+    const hits = rows.filter(r =>
+      (!yv || String(r.year) === yv) &&
+      (!iv || r.industry === iv) &&
+      (!term || [r.name, r.one_liner, r.industry, r.batch].join(" ").toLowerCase().includes(term)));
+    count.textContent = `${hits.length} of ${rows.length} inactive companies`;
+    reg.replaceChildren(...hits.slice(0, 400).map(card));
+  }
+  q.addEventListener("input", render);
+  fy.addEventListener("change", render);
+  fi.addEventListener("change", render);
+  render();
+})();
+
+document.getElementById("foot").innerHTML =
+  `Generated ${esc(DATA.generated)} · sources: YC directory (yc-oss mirror), Wayback Machine CDX,
+   HN Algolia, SEC EDGAR full-text search · shutdown reasons LLM-extracted with evidence links ·
+   built by Rohit Gawli — The Startup Lifecycle Project`;
+</script>
