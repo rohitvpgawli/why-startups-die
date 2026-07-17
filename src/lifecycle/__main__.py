@@ -33,12 +33,10 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("init-db")
     sub.add_parser("ingest-yc")
-    for name in ("ingest-wayback", "ingest-hn", "ingest-edgar"):
+    for name in ("ingest-wayback", "ingest-hn", "ingest-edgar", "ingest-wayback-notices"):
         p = sub.add_parser(name)
         p.add_argument("--status", default=None, help="only companies with this status, e.g. Inactive")
         p.add_argument("--limit", type=int, default=None)
-    p = sub.add_parser("ingest-wayback-notices")
-    p.add_argument("--limit", type=int, default=None)
     p = sub.add_parser("enrich")
     p.add_argument("--limit", type=int, default=None)
     sub.add_parser("export")
@@ -66,7 +64,7 @@ def main() -> None:
     elif args.cmd == "ingest-wayback-notices":
         from lifecycle.ingest import wayback_notices
 
-        wayback_notices.ingest(limit=args.limit)
+        wayback_notices.ingest(status_filter=args.status or "Inactive", limit=args.limit)
     elif args.cmd == "enrich":
         from lifecycle.enrich import shutdown_reason
 

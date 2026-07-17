@@ -82,6 +82,16 @@ CREATE TABLE IF NOT EXISTS hn_mentions (
     PRIMARY KEY (company_id, story_id)
 );
 
+-- Shutdown notices mined from the final Wayback homepage snapshot.
+-- A row with phrase NULL means "checked, no notice found" (resumability).
+CREATE TABLE IF NOT EXISTS wayback_notices (
+    company_id      VARCHAR PRIMARY KEY,
+    snapshot_url    VARCHAR,
+    phrase          VARCHAR,               -- matched phrase, NULL = none found
+    snippet         VARCHAR,               -- surrounding text
+    checked_at      TIMESTAMP DEFAULT current_timestamp
+);
+
 -- LLM enrichment output. Evidence-linked by construction: no row without
 -- a quote and a source URL.
 CREATE TABLE IF NOT EXISTS shutdown_enrichment (

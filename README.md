@@ -30,7 +30,8 @@ survival-analysis framing (Kaplan-Meier style), never naive averages.
 | layoffs.fyi | 🔜 planned | Layoff events (pre-death signal) |
 | TechCrunch / news RSS | 🔜 planned | Funding + shutdown coverage |
 | GitHub org activity | 🔜 planned | Engineering pulse for devtools companies |
-| Shutdown letters / founder post-mortems | 🔜 planned | Input to LLM enrichment |
+| Wayback homepage shutdown notices | ✅ implemented | Founder-letter-grade evidence mined from final snapshots |
+| Shutdown letters / founder post-mortems | ✅ partial | HN threads + homepage notices feed enrichment |
 
 ## Pipeline
 
@@ -57,7 +58,8 @@ export PYTHONPATH=src
 .venv/bin/python -m lifecycle ingest-yc      # YC cohort, batches 2021+
 .venv/bin/python -m lifecycle ingest-wayback --status Inactive   # snapshot timelines
 .venv/bin/python -m lifecycle ingest-hn --status Inactive        # HN mentions
-.venv/bin/python -m lifecycle ingest-edgar --status Inactive     # Form D filings
+.venv/bin/python -m lifecycle ingest-edgar                       # Form D filings (full cohort)
+.venv/bin/python -m lifecycle ingest-wayback-notices             # homepage shutdown notices
 .venv/bin/python -m lifecycle enrich         # LLM shutdown-reason extraction (needs ANTHROPIC_API_KEY)
 .venv/bin/python -m lifecycle export         # JSON export for the dashboard
 .venv/bin/python -m lifecycle stats          # cohort summary
@@ -72,3 +74,10 @@ category, and a confidence score. Confidence is capped by source quality:
 founder letters and news up to 0.9, community testimony up to 0.7, pure
 inference from a dead website at most 0.4. Every row carries a verbatim
 evidence quote and its source URL — no unsourced claims enter the dataset.
+
+## Weekly refresh
+
+`scripts/refresh.sh` re-runs the whole pipeline idempotently (new deaths
+arrive as YC directory status flips). A scheduled task runs it every Monday
+morning, reviews new homepage notices for enrichment, rebuilds the
+dashboard, and republishes the artifact.
