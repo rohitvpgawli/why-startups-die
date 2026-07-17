@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# Reproducible build outputs
+data/*.db
+data/*.db-*
+
+# Local site setup artifacts
+web/.git.generated/
+.pnpm-store/
+node_modules/
+dist/

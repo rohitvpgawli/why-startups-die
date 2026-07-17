@@ -1,0 +1,93 @@
+{
+  "candidate_startups_before_2021": 25,
+  "form_d_filings_with_exact_roster_match": 102,
+  "retrieved_at": "2026-07-17T16:05:29+00:00",
+  "roster_records": 727,
+  "startup_match_counts": {
+    "ambiguous": 2,
+    "matched": 68,
+    "no_match": 657
+  },
+  "zip_files": [
+    {
+      "path": "2018q1_d.zip",
+      "sha256": "911c1b28c5a520c5eb335d5c4bfe8e07727382812913e67aa46d7af9e73946cc",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2018q1_d.zip"
+    },
+    {
+      "path": "2018q2_d.zip",
+      "sha256": "bcc51c6b55bc20e777bb33270deaba138ce2f80855e363fd624b5ac22a0c0281",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2018q2_d.zip"
+    },
+    {
+      "path": "2018q3_d.zip",
+      "sha256": "09c3da806133b76c1592cec90fe7b25695f4f5f531da725f0b994f821000d8a3",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2018q3_d.zip"
+    },
+    {
+      "path": "2018q4_d.zip",
+      "sha256": "1211a44a38866cba7c14f7c5a5dc340aacec713d01e92c1e5df4904cdfa051e0",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2018q4_d.zip"
+    },
+    {
+      "path": "2019q1_d.zip",
+      "sha256": "6ead9133bbe10654930ebb12a68f06bbeb5b2425a8a8bfaf103d675a33e719f0",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2019q1_d.zip"
+    },
+    {
+      "path": "2019q2_d.zip",
+      "sha256": "a24097ace401146ae5f5ebd4f7ed095e1590358ff3119eb124cc164bf941a3ef",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2019q2_d.zip"
+    },
+    {
+      "path": "2019q3_d.zip",
+      "sha256": "7b787160470de313b02a73e55588bd6605a4766d5054bd6bfc8d03fda1e4e470",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2019q3_d.zip"
+    },
+    {
+      "path": "2019q4_d.zip",
+      "sha256": "1b2232bc94fec91dc607e64ca5afaa6e1d4ef86359771731904709f58098e1a4",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2019q4_d.zip"
+    },
+    {
+      "path": "2020q1_d.zip",
+      "sha256": "dfc29b5dc5b358a5481cf78a54bed78bfe5393801f357b3f6958434b9d91dfe1",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2020q1_d.zip"
+    },
+    {
+      "path": "2020q2_d.zip",
+      "sha256": "2d821e724cd81b435446a4cab7deaf31885df09f572f44190a0e286d60388c6e",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2020q2_d.zip"
+    },
+    {
+      "path": "2020q3_d.zip",
+      "sha256": "b5d011b4edc6aff4c75bffadf1b17136acf37a1b35485a3f6f85425b1d6c15e8",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2020q3_d.zip"
+    },
+    {
+      "path": "2020q4_d.zip",
+      "sha256": "5e4ed8620104e248bc2e1e32bc2774c1f1747e91f3e0e605e307f0328640434b",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2020q4_d.zip"
+    },
+    {
+      "path": "2021q1_d.zip",
+      "sha256": "93b80fb8e002e408ebcdce919224b85a2cac8fdd1324655d8019156f7b0f52b0",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2021q1_d.zip"
+    },
+    {
+      "path": "2021q2_d.zip",
+      "sha256": "83d20adf2d10b8b8aa5b9c011bf61e6038448a390184f80a249c41b0565ced20",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2021q2_d.zip"
+    },
+    {
+      "path": "2021q3_d.zip",
+      "sha256": "b22012256a8171c15c47dc421e548a9d500d2436747355676056a6e8cf334b38",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2021q3_d.zip"
+    },
+    {
+      "path": "2021q4_d.zip",
+      "sha256": "7c20d2aed8d93dae9d940f66d97bd161ba78225844afc41f35373f1a7132d048",
+      "source_url": "https://www.sec.gov/files/structureddata/data/form-d-data-sets/2021q4_d.zip"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "retrieved_at": "2026-07-17T10:25:47+00:00",
+  "source_repository": "https://github.com/yc-oss/api",
+  "source_note": "Publicly launched companies with YC directory pages; not the full funded-company denominator.",
+  "batches": [
+    {
+      "batch": "winter-2021",
+      "source_url": "https://raw.githubusercontent.com/yc-oss/api/main/batches/winter-2021.json",
+      "path": "raw/winter-2021.json",
+      "records": 336,
+      "sha256": "9f9e6f6e3811a1e00eee1c1867a9ca4d4a745764ac077b460b6b92b2b42dc684"
+    },
+    {
+      "batch": "summer-2021",
+      "source_url": "https://raw.githubusercontent.com/yc-oss/api/main/batches/summer-2021.json",
+      "path": "raw/summer-2021.json",
+      "records": 391,
+      "sha256": "6d0b92d594bcccba23349c65d5d669f81d65c5f74870d8f0eb187901329d1957"
+    }
+  ],
+  "records": 727,
+  "output": "roster.jsonl"
+}

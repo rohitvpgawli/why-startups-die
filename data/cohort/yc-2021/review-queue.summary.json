@@ -1,0 +1,20 @@
+{
+  "eligibility_counts": {
+    "founded_2021_verified": 3,
+    "not_yet_eligible": 655,
+    "predecessor_sale_before_2021": 3,
+    "reported_sale_2021_pending_review": 42,
+    "reported_sale_before_2021": 13,
+    "sec_identity_rejected": 11
+  },
+  "founded_2021_verified": 3,
+  "lifecycle_status_candidates": 3,
+  "publishable_outcomes": 3,
+  "records": 727,
+  "reported_sale_2021_pending_review": 42,
+  "review_priority_counts": {
+    "not_started": 657,
+    "resolved": 70
+  },
+  "reviewed_right_censored": 3
+}
