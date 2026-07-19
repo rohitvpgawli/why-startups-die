@@ -62,7 +62,8 @@ Considered and rejected for v1: Crunchbase (licensed, five figures), LinkedIn
 ## Reproduction from scratch
 
 ```bash
-git clone <this repo> && cd startup-graveyard
+git clone https://github.com/rohitvpgawli/why-startups-die.git
+cd why-startups-die
 python3 -m venv .venv                      # Python 3.9+ works
 .venv/bin/pip install -r requirements.txt  # duckdb, httpx, anthropic
 export PYTHONPATH=src
@@ -193,11 +194,19 @@ them caught and fixed two further live filter leaks.
 `scripts/make_release.py vX.Y.Z` cuts a versioned, committable release into
 `releases/`: one CSV per table, the analysis JSON (all CIs included), the
 proxy-validation sample, and SHA-256 checksums. **`releases/v1.0.0/` is the
-citable artifact** — the DuckDB working file stays local. Compilation
-licensed CC BY 4.0:
+citable artifact** — the DuckDB working file stays local.
+
+Suggested citation:
 
 > Gawli, R. (2026). The Startup Lifecycle Project: outcomes of Y Combinator
 > startups, 2021–2026 batches. Data release v1.0.0.
+
+## License
+
+Code and data compilation are released under the **MIT License** (see
+[`LICENSE`](LICENSE)) — free to use, modify, and redistribute with
+attribution. The underlying facts are drawn from public sources (see
+[Data sources](#data-sources)); please cite this project when you build on it.
 
 ## Repository layout
 
