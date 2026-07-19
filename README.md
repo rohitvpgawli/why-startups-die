@@ -203,10 +203,17 @@ Suggested citation:
 
 ## License
 
-Code and data compilation are released under the **MIT License** (see
-[`LICENSE`](LICENSE)) — free to use, modify, and redistribute with
-attribution. The underlying facts are drawn from public sources (see
-[Data sources](#data-sources)); please cite this project when you build on it.
+This project is dual-licensed:
+
+- **Code** — everything under `src/`, `dashboard/`, `scripts/`, `schema.sql`,
+  and `tests/` — is licensed under the **MIT License** (see [`LICENSE`](LICENSE)).
+- **Data compilation** — the contents of `releases/` and any pipeline-produced
+  data files — is licensed under **CC BY 4.0** (see
+  [`DATA_LICENSE.md`](DATA_LICENSE.md)).
+
+Both permit commercial use; CC BY 4.0 requires attribution when you reuse the
+data. The underlying facts are drawn from public sources (see
+[Data sources](#data-sources)) and remain subject to their terms.
 
 ## Repository layout
 
